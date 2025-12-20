@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puter Python Manager - 本地AI账号管理平台</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Puter.js (Async for max performance) -->
+    <script src="https://js.puter.com/v2/" async></script>
+    <!-- 自定义样式 -->
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container-fluid {
+            max-width: 1800px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .icon-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .icon-rocket {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .icon-config {
+            background: var(--secondary-gradient);
+            color: white;
+        }
+
+        .icon-lock {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .icon-chart {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        .icon-test {
+            background: var(--warning-gradient);
+            color: white;
+        }
+
+        .icon-debug {
+            background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+            color: white;
+        }
+
+        .api-box {
+            background: #2d3436;
+            color: #00ff88;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            word-break: break-all;
+            border-left: 4px solid #667eea;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-running {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .log-container {
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            background: #1e272e;
+            color: #00ff88;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .btn-gradient-primary {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+
+        .btn-gradient-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a3d9c 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .form-control,
+        .form-select {
+            border: 2px solid #dfe6e9;
+            border-radius: 8px;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #636e72;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <!-- 顶部导航栏 -->
+        <nav class="navbar navbar-expand-lg navbar-light glass-card mb-4">
+            <div class="container-fluid">
+                <a class="navbar-brand fw-bold text-primary" href="#">
+                    <span class="icon-box icon-rocket">⚡</span>
+                    Puter Python Manager
+                </a>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-dark me-2">v2.0</span>
+                    <div class="d-flex align-items-center">
+                        <span class="me-2" id="systemStatus">🟢 系统运行正常</span>
+                        <div class="spinner-border spinner-border-sm text-primary d-none" id="loadingSpinner"></div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="row g-4">
+            <!-- 左侧侧边栏 -->
+            <div class="col-lg-3">
+                <!-- 账号管理卡片 -->
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title fw-bold mb-0">
+                            <i class="fas fa-users me-2"></i>
+                            账号管理
+                            <span class="badge bg-secondary ms-2" id="accountsCount">0</span>
+                        </h5>
+                        <button class="btn btn-sm btn-gradient-primary" id="addAccountBtn">
+                            <i class="fas fa-plus"></i> 添加
+                        </button>
+                    </div>
+
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>状态</th>
+                                    <th>账号</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accountsTable">
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-3">
+                                        加载账号列表...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-outline-primary w-100 mb-2" id="launchBrowserBtn">
+                            <i class="fas fa-plug me-1"></i> 连接 Puter 账号
+                        </button>
+                        <button class="btn btn-sm btn-outline-success w-100" id="refreshAllBtn">
+                            <i class="fas fa-sync-alt me-1"></i> 刷新所有Cookie
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 快速配置 -->
+                <div class="glass-card">
+                    <h5 class="card-title fw-bold mb-3">
+                        <i class="fas fa-cogs me-2"></i>
+                        快速配置
+                    </h5>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">API Key:</label>
+                        <input type="password" class="form-control" id="apiKeyInput" value="1">
+                        <small class="text-muted">用于保护API访问</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">本地服务:</label>
+                        <div class="api-box">http://<span id="localHost">127.0.0.1</span>:<span
+                                id="localPort">8000</span></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Puter.js URL:</label>
+                        <input type="text" class="form-control" id="puterJsUrl" value="https://js.puter.com/v2/">
+                    </div>
+
+                    <button class="btn btn-gradient-primary w-100" id="saveConfigBtn">
+                        <i class="fas fa-save me-1"></i> 保存配置
+                    </button>
+                </div>
+
+                <!-- 系统状态 -->
+                <div class="glass-card">
+                    <h5 class="card-title fw-bold mb-3">
+                        <i class="fas fa-heartbeat me-2"></i>
+                        系统状态
+                    </h5>
+
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">服务状态:</small>
+                            <span class="badge bg-success" id="serviceStatus">运行中</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">总账号数:</small>
+                            <span id="totalAccounts">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">活跃账号:</small>
+                            <span id="activeAccounts">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">API请求:</small>
+                            <span id="apiRequestCount">0</span>
+                        </div>
+                    </div>
+
+                    <div class="progress mb-1" style="height: 8px;">
+                        <div class="progress-bar bg-info" id="memoryUsage" style="width: 30%"></div>
+                    </div>
+                    <small class="text-muted d-block text-center">内存使用: <span id="memoryText">30%</span></small>
+                </div>
+            </div>
+
+            <!-- 中间主内容 -->
+            <div class="col-lg-6">
+                <!-- Puter.js AI功能 -->
+                <div class="glass-card">
+                    <h5 class="card-title fw-bold mb-3">
+                        <span class="icon-box icon-rocket">🚀</span>
+                        Puter.js AI 功能
+                    </h5>
+
+                    <ul class="nav nav-tabs mb-3" id="aiTabs">
+                        <li class="nav-item">
+                            <button class="nav-link active" id="image-tab" data-bs-toggle="tab"
+                                data-bs-target="#imageTab">
+                                <i class="fas fa-image me-1"></i> 图像生成
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chatTab">
+                                <i class="fas fa-comment me-1"></i> AI聊天
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="edit-tab" data-bs-toggle="tab" data-bs-target="#editTab">
+                                <i class="fas fa-edit me-1"></i> 图像编辑
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <!-- 图像生成选项卡 -->
+                        <div class="tab-pane fade show active" id="imageTab">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">提示词:</label>
+                                <textarea class="form-control" id="imagePrompt" rows="3"
+                                    placeholder="描述你想要生成的图像...">A serene Japanese garden with cherry blossoms and a koi pond</textarea>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">模型:</label>
+                                    <select class="form-select" id="imageModel">
+                                        <option value="black-forest-labs/FLUX.2-pro">FLUX.2 Pro (推荐)</option>
+                                        <option value="black-forest-labs/FLUX.2-max">FLUX.2 Max (最高质量)</option>
+                                        <option value="black-forest-labs/FLUX.1-schnell">FLUX.1 Schnell (快速)</option>
+                                        <option value="black-forest-labs/FLUX.2-flex">FLUX.2 Flex (可定制)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">尺寸:</label>
+                                    <select class="form-select" id="imageSize">
+                                        <option value="512x512">512x512</option>
+                                        <option value="768x768" selected>768x768</option>
+                                        <option value="1024x1024">1024x1024</option>
+                                        <option value="768x1024">768x1024 (肖像)</option>
+                                        <option value="1024x768">1024x768 (风景)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-gradient-primary w-100" id="generateImageBtn">
+                                <i class="fas fa-magic me-1"></i> 生成图像
+                            </button>
+
+                            <div class="mt-3 text-center">
+                                <div class="spinner-border text-primary d-none" id="imageSpinner"></div>
+                                <div id="imageResult" class="mt-3"></div>
+                            </div>
+                        </div>
+
+                        <!-- AI聊天选项卡 -->
+                        <div class="tab-pane fade" id="chatTab">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">消息:</label>
+                                <textarea class="form-control" id="chatMessage" rows="3"
+                                    placeholder="输入你的消息...">你好，请介绍一下你自己</textarea>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">模型:</label>
+                                    <select class="form-select" id="chatModel">
+                                        <option value="gpt-4o-mini">GPT-4o Mini (推荐)</option>
+                                        <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
+                                        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                                        <option value="gpt-5-nano">GPT-5 Nano (Experimental)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">模式:</label>
+                                    <select class="form-select" id="chatMode">
+                                        <option value="stream">流式响应</option>
+                                        <option value="complete">完整响应</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-gradient-primary w-100" id="sendChatBtn">
+                                <i class="fas fa-paper-plane me-1"></i> 发送消息
+                            </button>
+
+                            <div class="mt-3">
+                                <div class="log-container" id="chatResponse" style="height: 200px;">
+                                    等待响应...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 图像编辑选项卡 -->
+                        <div class="tab-pane fade" id="editTab">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                图像编辑功能需要提供原始图像URL和编辑提示词
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">图像URL:</label>
+                                <input type="text" class="form-control" id="editImageUrl"
+                                    placeholder="https://example.com/image.jpg"
+                                    value="https://assets.puter.site/doge.jpeg">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">编辑指令:</label>
+                                <textarea class="form-control" id="editPrompt" rows="3"
+                                    placeholder="描述如何编辑图像...">Draw an anime style version of this image.</textarea>
+                            </div>
+
+                            <button class="btn btn-gradient-primary w-100" id="editImageBtn">
+                                <i class="fas fa-paint-brush me-1"></i> 编辑图像
+                            </button>
+
+                            <div class="mt-3 text-center">
+                                <div class="spinner-border text-primary d-none" id="editSpinner"></div>
+                                <div id="editResult" class="mt-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 服务状态和日志 -->
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title fw-bold mb-0">
+                            <i class="fas fa-chart-line me-2"></i>
+                            服务状态与日志
+                        </h5>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary" id="clearLogsBtn">
+                                <i class="fas fa-trash"></i> 清空
+                            </button>
+                            <button class="btn btn-outline-secondary" id="pauseLogsBtn">
+                                <i class="fas fa-pause"></i> 暂停
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <span class="stat-number" id="requestCount">0</span>
+                                <div class="stat-label">总请求数</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <span class="stat-number" id="successCount">0</span>
+                                <div class="stat-label">成功</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <span class="stat-number" id="errorCount">0</span>
+                                <div class="stat-label">失败</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="log-container" id="liveLogs">
+                        [系统] 正在加载日志...
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧侧边栏 -->
+            <div class="col-lg-3">
+                <!-- API端点 -->
+                <div class="glass-card">
+                    <h5 class="card-title fw-bold mb-3">
+                        <i class="fas fa-code me-2"></i>
+                        API 端点
+                    </h5>
+
+                    <div class="mb-2">
+                        <div class="api-box mb-1">
+                            <small class="text-info">POST</small> /v1/chat/completions
+                        </div>
+                        <div class="api-box mb-1">
+                            <small class="text-info">GET</small> /v1/models
+                        </div>
+                        <div class="api-box mb-1">
+                            <small class="text-info">GET</small> /api/accounts
+                        </div>
+                        <div class="api-box mb-1">
+                            <small class="text-info">POST</small> /api/account/create
+                        </div>
+                        <div class="api-box mb-1">
+                            <small class="text-info">POST</small> /api/account/{id}/launch-browser
+                        </div>
+                        <div class="api-box">
+                            <small class="text-info">GET</small> /api/system/status
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <small class="text-muted">API Key:</small>
+                        <code class="small d-block bg-light p-1 rounded">1 (或配置中修改)</code>
+                    </div>
+                </div>
+
+                <!-- 系统信息 -->
+                <div class="glass-card">
+                    <h5 class="card-title fw-bold mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        系统信息
+                    </h5>
+
+                    <div class="small">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">版本:</span>
+                            <span>v2.0</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">启动时间:</span>
+                            <span id="uptime">--</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Python:</span>
+                            <span id="pythonVersion">--</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">主机:</span>
+                            <span id="hostName">--</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">工作目录:</span>
+                            <span class="text-truncate" style="max-width: 150px;" id="workingDir">--</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">数据目录:</span>
+                            <span class="text-truncate" style="max-width: 150px;" id="dataDir">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 快速链接 -->
+                <div class="glass-card">
+                    <h5 class="card-title fw-bold mb-3">
+                        <i class="fas fa-link me-2"></i>
+                        快速链接
+                    </h5>
+
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <a href="/docs" target="_blank" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-book me-1"></i> API文档
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="https://docs.puter.com/" target="_blank" class="btn btn-outline-info w-100">
+                                <i class="fas fa-external-link-alt me-1"></i> Puter文档
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="https://puter.com" target="_blank" class="btn btn-outline-success w-100">
+                                <i class="fas fa-globe me-1"></i> Puter网站
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline-warning w-100" id="restartServiceBtn">
+                                <i class="fas fa-redo me-1"></i> 重启服务
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部状态栏 -->
+        <footer class="mt-4 pt-3 border-top text-center">
+            <small class="text-white">
+                <i class="fas fa-exclamation-circle me-1"></i>
+                Puter Python Manager - 本地AI账号管理平台 |
+                服务地址: <code
+                    class="text-white">http://<span id="footerHost">127.0.0.1</span>:<span id="footerPort">8000</span></code>
+                |
+                最后更新: <span id="updateTime">--:--:--</span>
+            </small>
+        </footer>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.1/js/bootstrap.bundle.min.js"></script>
+
+    <!-- 主JavaScript -->
+    <script>
+        // 全局状态
+        let systemState = {
+            logs: [],
+            accounts: [],
+            isLogPaused: false,
+            autoScroll: true
+        };
+
+        // DOM加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeSystem();
+            loadSystemInfo();
+            loadAccounts();
+            loadSystemStatus();
+            startLiveUpdates();
+            setupEventListeners();
+        });
+
+        // 系统初始化
+        function initializeSystem() {
+            // 设置本地服务地址
+            const host = window.location.hostname;
+            const port = window.location.port || '8000';
+            document.getElementById('localHost').textContent = host;
+            document.getElementById('localPort').textContent = port;
+            document.getElementById('footerHost').textContent = host;
+            document.getElementById('footerPort').textContent = port;
+
+            // 初始化日志
+            addLog('系统初始化完成', 'success');
+            addLog(`服务地址: http://${host}:${port}`, 'info');
+            addLog('Puter.js 已加载，AI功能可用', 'info');
+        }
+
+        // 加载系统信息
+        function loadSystemInfo() {
+            fetch('/api/system/info')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.python_version) {
+                        document.getElementById('pythonVersion').textContent = data.python_version;
+                    }
+                    if (data.host_name) {
+                        document.getElementById('hostName').textContent = data.host_name;
+                    }
+                    if (data.working_dir) {
+                        document.getElementById('workingDir').textContent = data.working_dir;
+                    }
+                    if (data.uptime) {
+                        document.getElementById('uptime').textContent = data.uptime;
+                    }
+                    if (data.data_dir) {
+                        document.getElementById('dataDir').textContent = data.data_dir;
+                    }
+                })
+                .catch(console.error);
+        }
+
+        // 加载账号列表
+        function loadAccounts() {
+            fetch('/api/accounts')
+                .then(res => res.json())
+                .then(data => {
+                    systemState.accounts = data.accounts || [];
+                    updateAccountsTable();
+
+                    // 更新计数
+                    document.getElementById('accountsCount').textContent = systemState.accounts.length;
+                    document.getElementById('totalAccounts').textContent = systemState.accounts.length;
+                    const active = systemState.accounts.filter(a => a.is_active).length;
+                    document.getElementById('activeAccounts').textContent = active;
+                })
+                .catch(console.error);
+        }
+
+        // 更新账号表格
+        function updateAccountsTable() {
+            const tbody = document.getElementById('accountsTable');
+            if (systemState.accounts.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-3">
+                            暂无账号，点击"添加"按钮创建
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            systemState.accounts.slice(0, 10).forEach(account => {
+                const statusClass = account.is_active ? 'success' : 'secondary';
+                const statusIcon = account.is_active ? '✅' : '⏸️';
+
+                html += `
+                    <tr>
+                        <td>
+                            <span class="badge bg-${statusClass}">${statusIcon}</span>
+                        </td>
+                        <td>
+                            <div class="small fw-bold">${account.name || '未命名'}</div>
+                            <div class="text-muted" style="font-size: 10px;">${account.display_name || ''}</div>
+                            <div class="text-muted" style="font-size: 9px;">类型: ${account.account_type || '普通'}</div>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="launchBrowserForAccount(${account.id})" title="连接 Puter 账号">
+                                <i class="fas fa-plug"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success mt-1" onclick="refreshAccount(${account.id})" title="刷新Cookie">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger mt-1" onclick="deleteAccount(${account.id})" title="删除">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // 加载系统状态
+        function loadSystemStatus() {
+            fetch('/api/system/status')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.service_status === 'running') {
+                        document.getElementById('serviceStatus').className = 'badge bg-success';
+                        document.getElementById('serviceStatus').textContent = '运行中';
+                        document.getElementById('systemStatus').innerHTML = '🟢 系统运行正常';
+                    } else {
+                        document.getElementById('serviceStatus').className = 'badge bg-danger';
+                        document.getElementById('serviceStatus').textContent = '停止';
+                        document.getElementById('systemStatus').innerHTML = '🔴 系统异常';
+                    }
+
+                    document.getElementById('apiRequestCount').textContent = data.api_requests || 0;
+
+                    if (data.memory_usage) {
+                        const memoryPercent = Math.min(100, Math.max(0, data.memory_usage));
+                        document.getElementById('memoryUsage').style.width = `${memoryPercent}%`;
+                        document.getElementById('memoryText').textContent = `${memoryPercent}%`;
+                    }
+                })
+                .catch(console.error);
+        }
+
+        // 添加日志
+        function addLog(message, type = 'info') {
+            if (systemState.isLogPaused) return;
+
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                info: '#00bcd4',
+                success: '#4caf50',
+                error: '#f44336',
+                warning: '#ff9800'
+            };
+
+            const logEntry = `[${timestamp}] ${message}`;
+            systemState.logs.push({ timestamp, message, type });
+
+            if (systemState.logs.length > 100) systemState.logs.shift();
+
+            const logContainer = document.getElementById('liveLogs');
+            const logLine = document.createElement('div');
+            logLine.style.color = colors[type] || colors.info;
+            logLine.style.marginBottom = '5px';
+            logLine.textContent = logEntry;
+
+            logContainer.appendChild(logLine);
+
+            if (systemState.autoScroll) {
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+        }
+
+        // 开始实时更新
+        function startLiveUpdates() {
+            // 更新系统状态每30秒
+            setInterval(loadSystemStatus, 30000);
+
+            // 更新账号每60秒
+            setInterval(loadAccounts, 60000);
+
+            // 更新系统信息每120秒
+            setInterval(loadSystemInfo, 120000);
+
+            // 更新时间显示每10秒
+            setInterval(updateTime, 10000);
+
+            updateTime();
+        }
+
+        // 更新时间显示
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN');
+            document.getElementById('updateTime').textContent = timeStr;
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 添加账号按钮
+            document.getElementById('addAccountBtn').addEventListener('click', function () {
+                const accountName = prompt('请输入账号名称:', `账号${systemState.accounts.length + 1}`);
+                if (!accountName) return;
+
+                fetch('/api/account/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: accountName,
+                        display_name: accountName,
+                        account_type: 'puter'
+                    })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            addLog(`账号创建成功: ${accountName}`, 'success');
+                            loadAccounts();
+                        } else {
+                            addLog(`账号创建失败: ${data.message}`, 'error');
+                        }
+                    })
+                    .catch(err => {
+                        addLog(`请求失败: ${err.message}`, 'error');
+                    });
+            });
+
+            // 打开浏览器登录按钮
+            document.getElementById('launchBrowserBtn').addEventListener('click', function () {
+                if (systemState.accounts.length === 0) {
+                    alert('请先创建账号');
+                    return;
+                }
+
+                // 使用第一个账号
+                const account = systemState.accounts[0];
+                launchBrowserForAccount(account.id);
+            });
+
+            // 刷新所有Cookie按钮
+            document.getElementById('refreshAllBtn').addEventListener('click', function () {
+                if (confirm('确定要刷新所有账号的Cookie吗？')) {
+                    addLog('正在刷新所有账号Cookie...', 'warning');
+                    // 实现刷新逻辑
+                }
+            });
+
+            // 保存配置按钮
+            document.getElementById('saveConfigBtn').addEventListener('click', function () {
+                const apiKey = document.getElementById('apiKeyInput').value;
+                const puterJsUrl = document.getElementById('puterJsUrl').value;
+
+                fetch('/api/config/set', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify([
+                        { key: 'api_key', value: apiKey },
+                        { key: 'puter_js_url', value: puterJsUrl }
+                    ])
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            addLog('配置保存成功', 'success');
+                        } else {
+                            addLog(`配置保存失败: ${data.message}`, 'error');
+                        }
+                    })
+                    .catch(err => {
+                        addLog(`请求失败: ${err.message}`, 'error');
+                    });
+            });
+
+            // 生成图像按钮
+            document.getElementById('generateImageBtn').addEventListener('click', function () {
+                const prompt = document.getElementById('imagePrompt').value;
+                const model = document.getElementById('imageModel').value;
+                const size = document.getElementById('imageSize').value;
+                const [width, height] = size.split('x').map(Number);
+
+                const spinner = document.getElementById('imageSpinner');
+                const resultDiv = document.getElementById('imageResult');
+
+                spinner.classList.remove('d-none');
+                resultDiv.innerHTML = '';
+
+                addLog(`正在生成图像: ${prompt.substring(0, 50)}...`, 'info');
+
+                // 调用Puter.js API
+                puter.ai.txt2img(prompt, {
+                    model: model,
+                    width: width,
+                    height: height,
+                    disable_safety_checker: true
+                })
+                    .then(imageElement => {
+                        spinner.classList.add('d-none');
+                        resultDiv.innerHTML = '';
+                        resultDiv.appendChild(imageElement);
+                        addLog('图像生成成功', 'success');
+
+                        // 更新统计
+                        document.getElementById('requestCount').textContent = parseInt(document.getElementById('requestCount').textContent) + 1;
+                        document.getElementById('successCount').textContent = parseInt(document.getElementById('successCount').textContent) + 1;
+                    })
+                    .catch(error => {
+                        spinner.classList.add('d-none');
+                        resultDiv.innerHTML = `<div class="alert alert-danger">生成失败: ${error.message}</div>`;
+                        addLog(`图像生成失败: ${error.message}`, 'error');
+
+                        document.getElementById('requestCount').textContent = parseInt(document.getElementById('requestCount').textContent) + 1;
+                        document.getElementById('errorCount').textContent = parseInt(document.getElementById('errorCount').textContent) + 1;
+                    });
+            });
+
+            // 发送聊天按钮
+            document.getElementById('sendChatBtn').addEventListener('click', function () {
+                const message = document.getElementById('chatMessage').value;
+                const model = document.getElementById('chatModel').value;
+                const mode = document.getElementById('chatMode').value;
+                const responseDiv = document.getElementById('chatResponse');
+
+                responseDiv.innerHTML = '正在思考...';
+                addLog(`发送聊天消息: ${message.substring(0, 50)}...`, 'info');
+
+                if (mode === 'stream') {
+                    // 流式响应
+                    responseDiv.innerHTML = '';
+                    puter.ai.chat(message, { model: model, stream: true })
+                        .then(async response => {
+                            for await (const part of response) {
+                                if (part.text) {
+                                    responseDiv.innerHTML += part.text.replaceAll('\n', '<br>');
+                                    responseDiv.scrollTop = responseDiv.scrollHeight;
+                                }
+                            }
+                            addLog('聊天流式响应完成', 'success');
+                        })
+                        .catch(error => {
+                            responseDiv.innerHTML = `错误: ${error.message}`;
+                            addLog(`聊天失败: ${error.message}`, 'error');
+                        });
+                } else {
+                    // 完整响应
+                    puter.ai.chat(message, { model: model, stream: false })
+                        .then(response => {
+                            responseDiv.innerHTML = response.text.replaceAll('\n', '<br>');
+                            addLog('聊天响应完成', 'success');
+                        })
+                        .catch(error => {
+                            responseDiv.innerHTML = `错误: ${error.message}`;
+                            addLog(`聊天失败: ${error.message}`, 'error');
+                        });
+                }
+
+                document.getElementById('requestCount').textContent = parseInt(document.getElementById('requestCount').textContent) + 1;
+            });
+
+            // 编辑图像按钮
+            document.getElementById('editImageBtn').addEventListener('click', function () {
+                const imageUrl = document.getElementById('editImageUrl').value;
+                const prompt = document.getElementById('editPrompt').value;
+                const spinner = document.getElementById('editSpinner');
+                const resultDiv = document.getElementById('editResult');
+
+                spinner.classList.remove('d-none');
+                resultDiv.innerHTML = '';
+
+                addLog(`正在编辑图像: ${prompt.substring(0, 50)}...`, 'info');
+
+                puter.ai.txt2img(prompt, {
+                    model: 'black-forest-labs/FLUX.1-kontext-pro',
+                    image_url: imageUrl
+                })
+                    .then(imageElement => {
+                        spinner.classList.add('d-none');
+                        resultDiv.innerHTML = '';
+                        resultDiv.appendChild(imageElement);
+                        addLog('图像编辑成功', 'success');
+                    })
+                    .catch(error => {
+                        spinner.classList.add('d-none');
+                        resultDiv.innerHTML = `<div class="alert alert-danger">编辑失败: ${error.message}</div>`;
+                        addLog(`图像编辑失败: ${error.message}`, 'error');
+                    });
+            });
+
+            // 清空日志按钮
+            document.getElementById('clearLogsBtn').addEventListener('click', function () {
+                document.getElementById('liveLogs').innerHTML = '';
+                systemState.logs = [];
+                addLog('日志已清空', 'warning');
+            });
+
+            // 暂停日志按钮
+            document.getElementById('pauseLogsBtn').addEventListener('click', function () {
+                systemState.isLogPaused = !systemState.isLogPaused;
+                const icon = this.querySelector('i');
+                if (systemState.isLogPaused) {
+                    icon.className = 'fas fa-play';
+                    this.title = '继续日志';
+                    addLog('日志已暂停', 'warning');
+                } else {
+                    icon.className = 'fas fa-pause';
+                    this.title = '暂停日志';
+                    addLog('日志继续', 'success');
+                }
+            });
+
+            // 重启服务按钮
+            document.getElementById('restartServiceBtn').addEventListener('click', function () {
+                if (confirm('确定要重启服务吗？重启需要几秒钟。')) {
+                    addLog('正在重启服务...', 'warning');
+                    fetch('/api/system/restart', { method: 'POST' })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                addLog('服务重启命令已发送', 'success');
+                            } else {
+                                addLog(`重启失败: ${data.message}`, 'error');
+                            }
+                        })
+                        .catch(err => {
+                            addLog(`请求失败: ${err.message}`, 'error');
+                        });
+                }
+            });
+        }
+
+        // 全局函数
+        window.launchBrowserForAccount = async function (accountId) {
+            try {
+                if (typeof puter === 'undefined') {
+                    alert('Puter.js 正在加载中，请稍后再试（可能由于网络原因导致加载缓慢）');
+                    return;
+                }
+                addLog(`正在启动 Puter.js 登录流程...`, 'info');
+                const user = await puter.auth.signIn();
+
+                addLog(`Puter 登录成功: ${user.username}`, 'success');
+
+                // 将用户信息同步到后端数据库
+                addLog(`正在同步账号信息到后端...`, 'info');
+                const bindRes = await fetch(`/api/account/${accountId}/bind`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(user)
+                });
+                const bindData = await bindRes.json();
+
+                if (bindData.success) {
+                    addLog(`账号同步成功: ${bindData.account_name}`, 'success');
+                    alert(`Puter 账号连接成功！\n用户名: ${user.username}\n已同步到本地数据库。`);
+                    loadAccounts(); // 刷新列表以显示激活状态
+                } else {
+                    addLog(`账号同步警告: ${bindData.message}`, 'warning');
+                    alert(`登录成功，但同步到后端失败: ${bindData.message}`);
+                }
+
+            } catch (error) {
+                console.error(error);
+                addLog(`Puter 登录失败: ${error.message || error}`, 'error');
+            }
+        };
+
+        window.refreshAccount = function (accountId) {
+            // 实现刷新账号Cookie逻辑
+            addLog('刷新功能开发中...', 'info');
+        };
+
+        window.deleteAccount = function (accountId) {
+            if (confirm('确定要删除这个账号吗？这将删除所有本地数据。')) {
+                fetch(`/api/account/${accountId}`, { method: 'DELETE' })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            addLog(`账号删除成功`, 'success');
+                            loadAccounts();
+                        } else {
+                            addLog(`删除失败: ${data.message}`, 'error');
+                        }
+                    })
+                    .catch(err => {
+                        addLog(`请求失败: ${err.message}`, 'error');
+                    });
+            }
+        };
+    </script>
+</body>
+
+</html>
